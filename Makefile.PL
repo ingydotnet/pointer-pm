@@ -8,7 +8,7 @@ license('perl');
 
 requires(
     perl =>   '5.6.1',
-    Spiffy => '0.11',
+    Spiffy => '0.23',
 );
 
 &WriteAll();
