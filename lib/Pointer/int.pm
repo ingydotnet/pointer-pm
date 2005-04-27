@@ -1,10 +1,7 @@
 package Pointer::int;
-use strict;
-use Pointer '-base';
+use Pointer -Base;
 use Config;
 
-attribute sizeof => $Config{intsize};
-attribute type => 'int';
-attribute pack_template => 'i!';
-
-1;
+const type => 'int';
+const sizeof => $Config{intsize};
+const pack_template => 'i!';

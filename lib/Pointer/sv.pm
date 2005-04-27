@@ -1,24 +1,20 @@
 package Pointer::sv;
-use strict;
-use Pointer '-base';
+use Pointer -Base;
 use Config;
 
-attribute sizeof => $Config{intsize} + 8;
-attribute type => 'sv';
-attribute pack_template => 'i!i!i!';
+const sizeof => $Config{intsize} + 8;
+const type => 'sv';
+const pack_template => 'i!i!i!';
 
 sub sv_any {
-    my $self = shift;
     ($self->get)[0];
 }
 
 sub sv_refcnt {
-    my $self = shift;
     ($self->get)[1];
 }
 
 sub sv_flags {
-    my $self = shift;
     ($self->get)[2];
 }
 
@@ -54,5 +50,3 @@ use constant SVp_POK      => 0x04000000;
 use constant SVp_SCREAM   => 0x08000000;
 use constant SVf_UTF8     => 0x20000000;
 use constant SVf_AMAGIC   => 0x10000000;
-
-1;

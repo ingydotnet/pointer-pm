@@ -1,23 +1,24 @@
 package Pointer;
-use strict;
-use Spiffy '-base';
+use Spiffy 0.23 -Base;
 use Carp;
 use overload qw("" stringify + add - subtract);
 use Config;
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 our @EXPORT = qw(pointer);
-spiffy_constructor 'pointer';
 
 use constant POINTER => 'L!'; # XXX not totally portable
 
-attribute address => undef;
-attribute type => 'void';
-attribute sizeof => 1;
-attribute pack_template => 'b';
+const type => 'void';
+const sizeof => 1;
+const pack_template => 'b';
+field address => undef;
+
+sub pointer() {
+    __PACKAGE__->new(@_);
+}
 
 my $type_map = {};
 sub get_class {
-    my $self = shift;
     my $type = shift;
     return $type_map->{$type} if defined $type_map->{$type};
     $type_map = {};
@@ -37,22 +38,21 @@ sub get_class {
 }
 
 sub new {
-    my $class = shift;
-    my ($args, @values) = $class->parse_arguments(@_);
+    my ($args, @values) = $self->parse_arguments(@_);
     my ($type, $address) = @values;
     $type ||= 'void';
-    my $real_class = $class->get_class($type);    
-    my $self = bless {}, $real_class;
+    my $real_class = $self->get_class($type);    
+    $self = bless {}, $real_class;
     $self->address($address);
     return $self;
 }
 
 sub stringify {
-    overload::StrVal(@_);
+    overload::StrVal($self);
 }
 
 sub add {
-    my ($self, $number) = @_;
+    my $number = shift;
     croak "Invalid pointer addition" if ref $number;
     my $result = Pointer->new($self->type);
     $result->address($self->address + $number * $self->sizeof);
@@ -60,7 +60,7 @@ sub add {
 }
 
 sub subtract {
-    my ($self, $number, $reverse) = @_;
+    my ($number, $reverse) = @_;
     croak "Invalid pointer subtraction" if $reverse or ref $number;
     my $result = Pointer->new($self->type);
     $result->address($self->address - $number * $self->sizeof);
@@ -72,31 +72,26 @@ sub ptrsize {
 }
 
 sub to {
-    my $self = shift;
     my $address = shift;
     $self->address($address);
     return $self;
 } 
 
 sub of_scalar {
-    my $self = shift;
     $self->address(hex $self->scalar_id($_[0]));
     return $self;
 } 
 
 sub hex_address {
-    my $self = shift;
     my $address = $self->assert_address;
     sprintf '0x%x', $address;
 }
 
 sub assert_pointer {
-    my $self = shift;
     return pack(POINTER, $self->assert_address);
 }
 
 sub assert_address {
-    my $self = shift;
     my $address = $self->address;
     croak "Undefined pointer"
       unless defined $address;
@@ -104,26 +99,22 @@ sub assert_address {
 }
 
 sub reverse_bytes {
-    my $self = shift;
     local $_ = shift;
     join '', reverse split;
 }
 
 sub get {
-    my $self = shift;
     my $count = shift || 1;
     my $length = $count * $self->sizeof;
     unpack $self->pack_template . $count, $self->get_raw($length);
 }
 
 sub get_raw {
-    my $self = shift;
     my $length = shift || 1;
     unpack "P$length", $self->assert_pointer;
 }
 
 sub get_hex {
-    my $self = shift;
     my $count = shift || 1;
     my $sizeof = $self->sizeof;
     my $length = $count * $sizeof;
@@ -134,34 +125,31 @@ sub get_hex {
 }
 
 sub get_pointer {
-    my $self = shift;
     my $pointer = Pointer->new(@_);
     $pointer->address(unpack POINTER, $self->get_raw($self->ptrsize));
     return $pointer;
 }
 
 sub get_string {
-    my $self = shift;
     unpack 'p*', $self->assert_pointer;
 }
 
 sub scalar_id {
-    my $self = shift;
     return
       overload::StrVal(\ $_[0]) =~ qr{^(?:.*\=)?[^=]*\(([^\(]*)\)$}o
       ? $1
       : croak "Can't find id of scalar";
 }
-1;
+
 __END__
 #==============================================================================#
 package Pointer::int;
 use strict;
 Pointer->import('-base');
 
-attribute sizeof => $Config::Config{intsize};
-attribute type => 'int';
-attribute pack_template => 'i!';
+field sizeof => $Config::Config{intsize};
+field type => 'int';
+field pack_template => 'i!';
 
 1;
 

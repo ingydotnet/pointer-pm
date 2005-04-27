@@ -1,9 +1,6 @@
 package Pointer::long;
-use strict;
-use Pointer '-base';
+use Pointer -Base;
 use Config;
 
-attribute sizeof => $Config{longsize};
-attribute type => 'long';
-
-1;
+const type => 'long';
+const sizeof => $Config{longsize};
